@@ -6,9 +6,6 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class BrandService {
-  /*   private brands: BrandEntity[] = [
-    { id: randomUUID(), name: 'Toyota', createdAt: new Date().getTime() },
-  ]; */
   private brands: BrandEntity[] = [];
 
   findAll() {
