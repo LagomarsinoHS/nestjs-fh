@@ -1,0 +1,24 @@
+
+version: '3'
+services:
+  # Con esto le indico que creare un servicio de base de datos
+  db:
+    # Le indico la imagen que quiero usar, esto lo buscará en docker-hub
+    image: mongo:5.0.0
+    # Esto es para indicar que en caso de que falle o el servicio se detenga lo reinicie
+    restart: always
+    # Si no especifico ningun puerto, estará corriendo en el puerto del contenedor, está aislado
+    # Si le agrego puerto, hace un puente entre mi puerto con el del contenedor
+    # <Mi Pc> - <Contenedor>
+    ports:
+      - 27017:27017
+    # Defino variables de entorno, como si fuera .env
+    environment:
+      - MONGODB_DATABASE=nest-pokemon
+    # Esto es para crear un archivo fisico en mi equipo o donde indique, de esta manera
+    # puedo hacer que la información de mi db sea persistente
+    volumes:
+      # Esto hace que se cree una carpeta en la raiz de mi proyecto llamada mongo
+      # Y la conecte (despues de los :) con data/db que se encuentra dentro de la imagen
+      # En otras palabras estoy pasando la data de la db a mi carpeta mongo
+      - ./mongo:/data/db

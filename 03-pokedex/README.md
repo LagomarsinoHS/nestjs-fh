@@ -2,72 +2,92 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Tabla de contenidos
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- [Ejecutar en Desarrollo](#ejecutar_en_desarrollo)
+- [Stack Usado](#stack_usado)
+- [Contenido Estatico](#contenido_estatico)
+- [Docker](#docker)
+  - [Docker Hub](#docker_hub)
+  - [docker-compose.yml](#docker-compose_yml)
+  - [Levantar Imagen Docker](#levantar_imagen_docker)
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Ejecutar_en_desarrollo
+1. Clonar repositorio
+2. Ejecutar
 
-## Installation
+    `npm i` | `npm install`
 
-```bash
-$ npm install
+3. Tener instalado nest CLI
+4. Levantar la base de datos
+
+  `docker-compose up -d`
+
+# Stack_Usado
+* MongoDb
+* Nest
+# Contenido_Estatico
+
+ Con contenido estatico me refiero a crear una pagina index html que se servirá al entrar a `{endpoint}:{PORT}`
+
+ Para hacer esto se debieron hacer ciertas cosas
+
+ 1. instalar paquete `@nestjs/serve-static`
+ 2. Agregar el import correspondiente en app.modules
+ 
+```
+imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    })
+  ]
 ```
 
-## Running the app
+3. Crear una carpeta public en la raiz del proyecto con su css y html respectivo
+4. Llamar el endpoint base
 
-```bash
-# development
-$ npm run start
 
-# watch mode
-$ npm run start:dev
 
-# production mode
-$ npm run start:prod
-```
 
-## Test
+# Docker
 
-```bash
-# unit tests
-$ npm run test
+## Docker_Hub
+* [Docker Hub](https://hub.docker.com/)
+* En esta pagina podemos conseguir las imagenes de docker que necesitemos
 
-# e2e tests
-$ npm run test:e2e
+## docker-compose_yml
+* En el caso de que no bajemos la imagen desde docker hub, podemos hacerlo con un archivo yaml en el root del proyecto
 
-# test coverage
-$ npm run test:cov
-```
+````
+docker-compose.yml
+version: '3'
+services:
+  db:
+    image: mongo:5
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      - MONGODB_DATABASE=nest-pokemon
+    volumes:
+      - ./mongo:/data/db
+````
 
-## Support
+## Levantar_imagen_docker
+Para levantar la imagen, en el terminal debes escribir el comando:
+`docker-compose up` o `docker-compose up -d`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+NOTA: `Asegurar que la aplicación de docker esté corriendo`
 
-## Stay in touch
+>docker-compose up:
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+    Muestra en tiempo real los registros de salida (logs) de los contenedores en la terminal.
+    Los logs y mensajes de los servicios se imprimen directamente en la terminal, lo que puede ser útil para monitorear y depurar.
 
-## License
+>docker-compose up -d:
 
-Nest is [MIT licensed](LICENSE).
+    No muestra los registros de salida en tiempo real en la terminal.
+    Los contenedores se ejecutan en segundo plano (modo "detached").
+    Una vez que los servicios se inician correctamente, el control se devuelve a la terminal y se puede seguir trabajando sin que los logs aparezcan en pantalla.
+    Es útil para situaciones donde no necesitas ver los logs continuamente y deseas liberar la terminal para otras tareas.
