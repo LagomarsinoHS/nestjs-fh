@@ -18,16 +18,12 @@ export class PokemonService {
       const newPokemon = await this.pokemonModel.create(createPokemonDto);
       return newPokemon;
     } catch (error) {
-      if (error.code === 11000) {
-        throw new BadRequestException(`Pokemon exist in DB, ${JSON.stringify(error.keyValue)}`);
-      }
-      console.log(error);
-      throw new InternalServerErrorException(`Can't create pokemon - check logs`);
+      this.handleExceptions(error);
     }
   }
 
   findAll() {
-    return this.pokemonModel.find();
+    return this.pokemonModel.find().sort({ n0: 1 });
   }
 
   async findOne(term: string) {
@@ -54,11 +50,28 @@ export class PokemonService {
 
   async update(term: string, updatePokemonDto: UpdatePokemonDto) {
     const pokemon = await this.findOne(term);
-    await pokemon.updateOne(updatePokemonDto);
-    return { ...pokemon.toJSON(), ...updatePokemonDto };
+
+    try {
+      await pokemon.updateOne(updatePokemonDto);
+      return { ...pokemon.toJSON(), ...updatePokemonDto };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pokemon`;
+  async remove(id: string): Promise<void> {
+    const { deletedCount } = await this.pokemonModel.deleteOne({ _id: id });
+
+    if (!deletedCount) {
+      throw new BadRequestException(`Pokemon with id ${id} not found`);
+    }
+  }
+
+  private handleExceptions(error: any) {
+    if (error.code === 11000) {
+      throw new BadRequestException(`Pokemon exist in DB, ${JSON.stringify(error.keyValue)}`);
+    }
+    console.log(error);
+    throw new InternalServerErrorException(`Can't update pokemon - check logs`);
   }
 }
