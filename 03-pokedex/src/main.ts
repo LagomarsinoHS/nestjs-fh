@@ -10,6 +10,13 @@ async function bootstrap() {
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
+
+        // Estos 2 ultimos son para decirle que se habilite la transformación y que dependiendo de lo que puse en el DTO asociado
+        // Se intente transformar
+        // transform: true,
+        // transformOptions: {
+        //   enableImplicitConversion: true,
+        // },
       }),
     )
     .listen(3000);

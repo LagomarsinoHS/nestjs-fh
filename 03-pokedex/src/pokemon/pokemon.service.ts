@@ -1,9 +1,15 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { Model, isValidObjectId } from 'mongoose';
 import { PokemonEntity } from './entities/pokemon.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { paginationDTO } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class PokemonService {
@@ -12,18 +18,26 @@ export class PokemonService {
     private readonly pokemonModel: Model<PokemonEntity>, // En el modelo hay que pasarle la CLASE
   ) {}
 
-  async create(createPokemonDto: CreatePokemonDto) {
-    try {
-      createPokemonDto.name = createPokemonDto.name.toLocaleLowerCase();
-      const newPokemon = await this.pokemonModel.create(createPokemonDto);
-      return newPokemon;
-    } catch (error) {
-      this.handleExceptions(error);
-    }
-  }
+  async findAll(queryParameters: paginationDTO) {
+    const { limit = 10, offset = 1 } = queryParameters;
 
-  findAll() {
-    return this.pokemonModel.find().sort({ n0: 1 });
+    const adjustedOffset = offset < 1 ? 1 : offset;
+    const pagination = (adjustedOffset - 1) * limit;
+    const [total, pokemons] = await Promise.all([
+      this.pokemonModel.countDocuments(),
+      this.pokemonModel.find().select('-__v').sort({ no: 1 }).limit(limit).skip(pagination),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    const currentPage = Math.ceil(adjustedOffset / limit);
+
+    const paginar = {
+      next: adjustedOffset + 1,
+      currentPage,
+      total,
+      totalPages,
+    };
+    return { pokemons, paginar };
   }
 
   async findOne(term: string) {
@@ -40,12 +54,32 @@ export class PokemonService {
       pokemon = await this.pokemonModel.findById(term);
     }
     // Verificacion por Name
-    if (!pokemon) pokemon = await this.pokemonModel.findOne({ name: term.toLocaleLowerCase().trim() });
+    if (!pokemon)
+      pokemon = await this.pokemonModel.findOne({ name: term.toLocaleLowerCase().trim() });
 
     // Si no se encuentra el pokemon
     if (!pokemon) throw new NotFoundException(`Pokemon with id|name|n0 "${term}" not found.`);
 
     return pokemon;
+  }
+
+  async create(createPokemonDto: CreatePokemonDto) {
+    try {
+      createPokemonDto.name = createPokemonDto.name.toLocaleLowerCase();
+      const newPokemon = await this.pokemonModel.create(createPokemonDto);
+      return newPokemon;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
+  async createBatch(createPokemonDto: CreatePokemonDto[]) {
+    try {
+      await this.pokemonModel.deleteMany({});
+      await this.pokemonModel.insertMany(createPokemonDto);
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   async update(term: string, updatePokemonDto: UpdatePokemonDto) {

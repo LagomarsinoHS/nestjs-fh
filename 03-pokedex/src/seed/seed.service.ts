@@ -1,30 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { PokemonService } from 'src/pokemon/pokemon.service';
-import { IResponsePokemon } from './interfaces/poke-response-interface';
+import { IResponsePokemonApi } from './interfaces/poke-response-interface';
 import { CreatePokemonDto } from 'src/pokemon/dto/create-pokemon.dto';
+import { AxiosAdapter } from 'src/common/adapters/axios-adapter';
 
 @Injectable()
 export class SeedService {
-  private readonly axios: AxiosInstance = axios;
-
-  constructor(private readonly pokemonService: PokemonService) {}
+  constructor(
+    private readonly pokemonService: PokemonService,
+    // Inserté esta dependencia para envolver en mi clase custom axios, por si a futuro cambia algo, solo lo cambio allí
+    private readonly http: AxiosAdapter,
+  ) {}
 
   async execute() {
-    const { data } = await this.axios.get<IResponsePokemon>('https://pokeapi.co/api/v2/pokemon?limit=650');
+    const { results } = await this.http.get<IResponsePokemonApi>(
+      'https://pokeapi.co/api/v2/pokemon?limit=650',
+    );
 
-    const mappedPoke: CreatePokemonDto[] = data.results.map((pokemon) => {
-      const n0 = +pokemon.url.split('/').at(-2);
-      return {
-        n0,
-        name: pokemon.name,
-      };
-    });
+    const pokemonsToInsert: CreatePokemonDto[] = results.map(({ name, url }) => ({
+      n0: +url.split('/').at(-2),
+      name,
+    }));
 
-    for (const pokemon of mappedPoke) {
-      this.pokemonService.create(pokemon);
-    }
-
+    await this.pokemonService.createBatch(pokemonsToInsert);
     return {
       msg: 'Seed executed succesfully.',
     };

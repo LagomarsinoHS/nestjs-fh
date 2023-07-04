@@ -1,4 +1,4 @@
-export interface IResponsePokemon {
+export interface IResponsePokemonApi {
   count: number;
   next: string;
   previous: null;
