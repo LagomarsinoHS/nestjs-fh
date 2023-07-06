@@ -10,6 +10,7 @@ import { Model, isValidObjectId } from 'mongoose';
 import { PokemonEntity } from './entities/pokemon.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { paginationDTO } from 'src/common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PokemonService {
@@ -21,18 +22,17 @@ export class PokemonService {
   async findAll(queryParameters: paginationDTO) {
     const { limit = 10, offset = 1 } = queryParameters;
 
-    const adjustedOffset = offset < 1 ? 1 : offset;
-    const pagination = (adjustedOffset - 1) * limit;
+    const pagination = (offset - 1) * limit;
     const [total, pokemons] = await Promise.all([
       this.pokemonModel.countDocuments(),
       this.pokemonModel.find().select('-__v').sort({ no: 1 }).limit(limit).skip(pagination),
     ]);
 
     const totalPages = Math.ceil(total / limit);
-    const currentPage = Math.ceil(adjustedOffset / limit);
+    const currentPage = Math.ceil(offset / limit);
 
     const paginar = {
-      next: adjustedOffset + 1,
+      next: offset + 1,
       currentPage,
       total,
       totalPages,
@@ -54,8 +54,7 @@ export class PokemonService {
       pokemon = await this.pokemonModel.findById(term);
     }
     // Verificacion por Name
-    if (!pokemon)
-      pokemon = await this.pokemonModel.findOne({ name: term.toLocaleLowerCase().trim() });
+    if (!pokemon) pokemon = await this.pokemonModel.findOne({ name: term.toLocaleLowerCase().trim() });
 
     // Si no se encuentra el pokemon
     if (!pokemon) throw new NotFoundException(`Pokemon with id|name|n0 "${term}" not found.`);

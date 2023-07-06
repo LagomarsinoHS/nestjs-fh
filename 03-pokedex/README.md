@@ -24,7 +24,11 @@
 
     `docker-compose up -d`
 
-5. Reconstruir la data de la BD con la semilla
+5. levantar proyecto
+
+    `npm run start:dev`
+
+6. Reconstruir la data de la BD con la semilla
 
     ````
     http://localhost:3000/api/v2/seed

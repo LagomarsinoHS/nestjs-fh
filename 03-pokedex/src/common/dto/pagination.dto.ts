@@ -11,10 +11,9 @@ export class paginationDTO {
   limit?: number;
 
   //Otra forma, mas atractiva a mi parecer para no cambiarlo aqui es crear un archivo con funciones que genere esto y aplicarlo de la siguiente manera
-
   @Transform(({ value }) => toNumber(value))
   @IsOptional()
-  @Min(0)
+  @Min(1)
   offset?: number;
 
   @Transform(({ value }) => toBoolean(value))

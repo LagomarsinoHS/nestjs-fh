@@ -11,7 +11,7 @@ services:
     # Si le agrego puerto, hace un puente entre mi puerto con el del contenedor
     # <Mi Pc> - <Contenedor>
     ports:
-      - 27017:27017
+      - 8080:27017
     # Defino variables de entorno, como si fuera .env
     environment:
       - MONGODB_DATABASE=nest-pokemon
